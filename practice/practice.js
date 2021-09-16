@@ -76,4 +76,31 @@ const anArray = (...args) => { //
 
 console.log(anArray(4, 5, 6, 7));
 
-//Destructuring 
+//Destructuring Object Destructuring 
+//Destructuring allows us to pull out individual values by their position or location in the array 
+
+// (Original Example)
+const printName = (personData) => {
+    console.log(personData.name);
+}
+
+printName(person); //This connects to the name up at the top on line 26 
+
+// (Destructuring example)
+const printNames = ({ name }) => { //name is the property on line 26 
+    console.log(name); //The properties are stored in a variable names name 
+}
+
+printNames(person);
+
+const { year } = person; //The curly braces on the left create two new constants that match the property name
+console.log(year);
+
+
+//Destructuring Arrays 
+const activities = ['Sports', 'Cooking'];
+const [hobby1, hobby2] = activities;
+console.log(hobby1, hobby2); //We are logging two individual objects so there is no array 
+
+
+
