@@ -1,31 +1,32 @@
-
-
-// function rqListener(req, res) { //You can name the arguments whatever you want
-// }
-
-// http.createServer(rqListener); //This is crucial when creating a server 
-
-// http.createServer(function(req, res) {
-// }); //This is an anonymous function 
-
-
-// const server = http.createServer((req, res) => {
-//     console.log(req.url, req.method, req.headers); //This is an arrow function example 
-//     // process.exit(); hard exits a program but you do not usually want to do this 
-//     res.setHeader('Content-Type', 'text/html'); //This attaches a header to the response that tells the browser that the information is HTML 
-//     res.write('<html>');
-//     res.write('<head><title>My First Page</title><head</title></head>');
-//     res.write('<body><h1>Hello From My Node.js Server</h1></body>')
-//     res.write('</html>');
-//     res.end(); //This means that we are no longer writing code because it will be sent back to the browser
-// }); //This is a complicated way to send a response 
-
 // server.listen(3000); //This starts a process where node keeps listening for incoming requests 
 
-const http = require('http'); //This imports files in node js
+// const http = require('http'); //This imports files in node js
+const path = require('path');
 
-const routes = require('./routes') //This is a custom file that node will look into to find what is registered 
+const express = require('express'); // 3rd party package 
+const bodyParser = require('body-parser');
 
-const server = http.createServer(routes);
+const app = express(); //App object
 
-server.listen(3000); 
+app.set('view engine', 'ejs');
+app.set('views', 'views');
+
+const adminData = require('./routes/admin');
+const shopRoutes = require('./routes/shop');
+
+//The parsing of the body should go first 
+app.use(bodyParser.urlencoded({extended: false})); //This registers a middleware. This parses through the body
+app.use(express.static(path.join(__dirname, 'public'))); //This allows us to access the css files 
+
+
+app.use('/admin', adminData.routes); //This allows us to put a common starting point 
+app.use(shopRoutes); //The order does matter when you are using the word "use"
+
+app.use((req, res, next) => {
+    res.status(404).render('404', { pageTitle: 'Page Not Found' });
+});
+
+app.listen(3000); 
+
+// const server = http.createServer(app);
+// server.listen(3000); 
