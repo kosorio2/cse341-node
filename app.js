@@ -1,32 +1,72 @@
-// server.listen(3000); //This starts a process where node keeps listening for incoming requests 
-
-// const http = require('http'); //This imports files in node js
 const path = require('path');
 
-const express = require('express'); // 3rd party package 
+const express = require('express');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose'); 
 
-const app = express(); //App object
+const PORT = process.env.PORT || 3000
+
+const errorController = require('./controllers/error');
+const User = require('./models/user');
+
+const app = express();
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
-const adminData = require('./routes/admin');
+const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
 
-//The parsing of the body should go first 
-app.use(bodyParser.urlencoded({extended: false})); //This registers a middleware. This parses through the body
-app.use(express.static(path.join(__dirname, 'public'))); //This allows us to access the css files 
-
-
-app.use('/admin', adminData.routes); //This allows us to put a common starting point 
-app.use(shopRoutes); //The order does matter when you are using the word "use"
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.use((req, res, next) => {
-    res.status(404).render('404', { pageTitle: 'Page Not Found' });
+  User.findById('615f09e85b0929a713e4e6c2')
+    .then(user => {
+      req.user = user;
+      next();
+    })
+    .catch(err => console.log(err));
 });
 
-app.listen(3000); 
+app.use('/admin', adminRoutes);
+app.use(shopRoutes);
 
-// const server = http.createServer(app);
-// server.listen(3000); 
+app.use(errorController.get404);
+
+const cors = require('cors') // Place this with other requires (like 'path' and 'express')
+const corsOptions = {
+    origin: "https://e-commerce-kathy.herokuapp.com/",
+    optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
+
+const options = {
+    useUnifiedTopology: true,
+    useNewUrlParser: true,
+    family: 4
+};
+
+const MONGODB_URL = process.env.MONGODB_URL || "mongodb+srv://hansen_kathy2:dzl9BKShIfaRMszI@week4.ckzbr.mongodb.net/test";
+                        
+
+mongoose.connect(MONGODB_URL, options)
+.then(result => {
+  User.findOne().then(user => {
+    if (!user) {
+      const user = new User({
+        name: 'Kathy',
+        email: 'kathy@test.com',
+        cart: {
+          items: []
+        }
+      });
+      user.save();
+    }
+  });
+  app.listen(PORT, function(){
+    console.log("Server is running on Port 3000")
+  });
+}).catch(err => {
+  console.log(err); 
+})
